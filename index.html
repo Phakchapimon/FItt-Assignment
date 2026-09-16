@@ -5,154 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Mobile Thumb Fitts' Law Experiment</title>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #121212;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        #phone-frame {
-            width: 100vw;
-            height: 100vh;
-            max-width: 420px;
-            max-height: 850px;
-            background-color: #1e1e1e;
-            border: 2px solid #333;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            overflow: hidden;
-        }
-        header {
-            padding: 12px;
-            background-color: #252525;
-            border-bottom: 1px solid #333;
-            text-align: center;
-        }
-        h1 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #00e676;
-        }
-        #stats {
-            font-size: 0.85rem;
-            color: #aaa;
-            margin-top: 4px;
-        }
-        #canvas-container {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: #181818;
-        }
-        .target {
-            position: absolute;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.8rem;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.05s ease;
-        }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+        body { margin: 0; padding: 0; background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        #phone-frame { width: 100vw; height: 100vh; max-width: 420px; max-height: 850px; background-color: #1e1e1e; border: 2px solid #333; border-radius: 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+        header { padding: 12px; background-color: #252525; border-bottom: 1px solid #333; text-align: center; }
+        h1 { margin: 0; font-size: 1.1rem; color: #00e676; }
+        #stats { font-size: 0.85rem; color: #aaa; margin-top: 4px; }
+        #canvas-container { flex: 1; position: relative; width: 100%; height: 100%; background-color: #181818; }
+        .target { position: absolute; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.05s ease; }
         .target:active { transform: scale(0.95); }
-        #start-btn {
-            background: linear-gradient(135deg, #00c853, #00e676);
-            color: #000;
-            z-index: 10;
-        }
-        #action-target {
-            background: linear-gradient(135deg, #ff3d00, #ff6e40);
-            color: #fff;
-            z-index: 20;
-        }
-        #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(18, 18, 18, 0.98);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 20px;
-            text-align: center;
-            z-index: 100;
-            overflow-y: auto;
-        }
-        .instructions {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            color: #ccc;
-            margin-bottom: 15px;
-        }
-        .btn-ui {
-            background-color: #00e676;
-            color: #000;
-            border: none;
-            padding: 12px 24px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
-            margin: 6px 0;
-            width: 85%;
-            flex-shrink: 0;
-        }
-        #feedback-flash {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s ease-out;
-            z-index: 50;
-        }
+        #start-btn { background: linear-gradient(135deg, #00c853, #00e676); color: #000; z-index: 10; }
+        #action-target { background: linear-gradient(135deg, #ff3d00, #ff6e40); color: #fff; z-index: 20; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(18, 18, 18, 0.98); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 20px; text-align: center; z-index: 100; overflow-y: auto; }
+        .instructions { font-size: 0.85rem; line-height: 1.4; color: #ccc; margin-bottom: 12px; }
+        .btn-ui { background-color: #00e676; color: #000; border: none; padding: 12px 24px; font-size: 0.95rem; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3); margin: 6px 0; width: 85%; flex-shrink: 0; }
+        #feedback-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.15s ease-out; z-index: 50; }
         .hit { background-color: rgba(0, 230, 118, 0.15); opacity: 1 !important; }
         .miss { background-color: rgba(255, 23, 68, 0.25); opacity: 1 !important; }
         
-        /* Results Table Styling */
-        .metrics-grid {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            margin: 10px 0;
-        }
-        .metric-box {
-            background: #2a2a2a;
-            padding: 8px;
-            border-radius: 8px;
-            width: 30%;
-        }
-        .metric-val { font-size: 1.1rem; font-weight: bold; color: #00e676; }
+        .metrics-grid { display: flex; justify-content: space-around; width: 100%; margin: 8px 0; }
+        .metric-box { background: #2a2a2a; padding: 8px; border-radius: 8px; width: 30%; }
+        .metric-val { font-size: 1.05rem; font-weight: bold; color: #00e676; }
         .metric-lbl { font-size: 0.7rem; color: #aaa; }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-            margin: 10px 0;
-            background: #252525;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        th, td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.72rem; margin: 8px 0; background: #252525; border-radius: 6px; overflow: hidden; }
+        th, td { padding: 5px 4px; text-align: center; border-bottom: 1px solid #333; }
         th { background: #333; color: #00e676; }
     </style>
 </head>
@@ -335,25 +212,41 @@
         actionTarget.style.display = 'none';
         startBtn.style.display = 'none';
         
-        // Compute Summary Data
         const totalMT = trialData.reduce((acc, row) => acc + row.movement_time_ms, 0);
         const avgMT = Math.round(totalMT / trialData.length);
         const totalErrors = trialData.reduce((acc, row) => acc + (row.errors > 0 ? 1 : 0), 0);
         const errorRate = ((totalErrors / trialData.length) * 100).toFixed(1);
         
-        // Group by Index of Difficulty (ID)
-        let idGroups = {};
+        // Group by condition key: "A_W"
+        let conditionGroups = {};
         trialData.forEach(row => {
-            const key = row.id_bits.toFixed(2);
-            if (!idGroups[key]) idGroups[key] = [];
-            idGroups[key].push(row.movement_time_ms);
+            const key = `${row.distance_A}_${row.width_W}`;
+            if (!conditionGroups[key]) {
+                conditionGroups[key] = {
+                    A: row.distance_A,
+                    W: row.width_W,
+                    ID: row.id_bits,
+                    times: []
+                };
+            }
+            conditionGroups[key].times.push(row.movement_time_ms);
         });
 
+        // Build Table Rows sorted by ID
+        let sortedKeys = Object.keys(conditionGroups).sort((a, b) => conditionGroups[a].ID - conditionGroups[b].ID);
         let tableRows = '';
-        Object.keys(idGroups).sort().forEach(idKey => {
-            const times = idGroups[idKey];
-            const avgTime = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
-            tableRows += `<tr><td>${idKey} bits</td><td>${avgTime} ms</td><td>${times.length}</td></tr>`;
+        sortedKeys.forEach(key => {
+            const group = conditionGroups[key];
+            const avgTime = Math.round(group.times.reduce((a, b) => a + b, 0) / group.times.length);
+            tableRows += `
+                <tr>
+                    <td>${group.A}px</td>
+                    <td>${group.W}px</td>
+                    <td>${group.ID.toFixed(2)} bits</td>
+                    <td>${avgTime} ms</td>
+                    <td>${group.times.length}</td>
+                </tr>
+            `;
         });
 
         overlayTitle.textContent = 'Experiment Results';
@@ -373,10 +266,16 @@
                 </div>
             </div>
             
-            <p><strong>Performance by Difficulty (ID):</strong></p>
+            <p><strong>Condition Summary (A, W, ID vs MT):</strong></p>
             <table>
                 <thead>
-                    <tr><th>ID (bits)</th><th>Mean MT</th><th>Reps</th></tr>
+                    <tr>
+                        <th>A</th>
+                        <th>W</th>
+                        <th>ID</th>
+                        <th>Mean MT</th>
+                        <th>Reps</th>
+                    </tr>
                 </thead>
                 <tbody>
                     ${tableRows}
