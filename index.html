@@ -72,9 +72,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             transition: transform 0.05s ease;
         }
-        .target:active {
-            transform: scale(0.95);
-        }
+        .target:active { transform: scale(0.95); }
         #start-btn {
             background: linear-gradient(135deg, #00c853, #00e676);
             color: #000;
@@ -87,49 +85,40 @@
         }
         #overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(18, 18, 18, 0.95);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(18, 18, 18, 0.98);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            padding: 24px;
+            padding: 20px;
             text-align: center;
             z-index: 100;
+            overflow-y: auto;
         }
         .instructions {
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 0.9rem;
+            line-height: 1.4;
             color: #ccc;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .btn-ui {
             background-color: #00e676;
             color: #000;
             border: none;
-            padding: 14px 28px;
-            font-size: 1rem;
+            padding: 12px 24px;
+            font-size: 0.95rem;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
             margin: 6px 0;
-            width: 80%;
-        }
-        .btn-ui:disabled {
-            background-color: #444;
-            color: #888;
-            box-shadow: none;
+            width: 85%;
+            flex-shrink: 0;
         }
         #feedback-flash {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.15s ease-out;
@@ -137,6 +126,34 @@
         }
         .hit { background-color: rgba(0, 230, 118, 0.15); opacity: 1 !important; }
         .miss { background-color: rgba(255, 23, 68, 0.25); opacity: 1 !important; }
+        
+        /* Results Table Styling */
+        .metrics-grid {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .metric-box {
+            background: #2a2a2a;
+            padding: 8px;
+            border-radius: 8px;
+            width: 30%;
+        }
+        .metric-val { font-size: 1.1rem; font-weight: bold; color: #00e676; }
+        .metric-lbl { font-size: 0.7rem; color: #aaa; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin: 10px 0;
+            background: #252525;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #333; }
+        th { background: #333; color: #00e676; }
     </style>
 </head>
 <body>
@@ -144,7 +161,7 @@
 <div id="phone-frame">
     <header>
         <h1>Thumb Fitts' Law Experiment</h1>
-        <div id="stats">Trial: <span id="trial-count">0</span> / 36</div>
+        <div id="stats">Trial: <span id="trial-count">0</span> / 108</div>
     </header>
 
     <div id="canvas-container">
@@ -154,12 +171,13 @@
     </div>
 
     <div id="overlay">
-        <h2>One-Handed Mobile Experiment</h2>
-        <div class="instructions">
+        <h2 id="overlay-title">One-Handed Mobile Experiment</h2>
+        <div id="overlay-body" class="instructions">
             <p><strong>Instructions:</strong></p>
             <p>1. Hold your phone in <strong>one hand</strong> using only your <strong>thumb</strong>.</p>
             <p>2. Tap the green <strong>START</strong> button at the bottom-right home zone.</p>
             <p>3. Rapidly tap the red <strong>TARGET</strong> button as fast and accurately as possible.</p>
+            <p>Total Trials: <strong>108</strong> (9 conditions × 12 reps)</p>
         </div>
         <button id="begin-exp-btn" class="btn-ui">Begin Experiment</button>
         <button id="download-csv-btn" class="btn-ui" style="background-color: #29b6f6; display: none;">Download CSV Data</button>
@@ -167,10 +185,9 @@
 </div>
 
 <script>
-    // Configuration & State
-    const distances = [140, 280, 420]; // Target Distances (A) in pixels
-    const widths = [36, 60, 84];       // Target Widths (W) in pixels
-    const trialsPerCondition = 4;
+    const distances = [140, 280, 420]; 
+    const widths = [36, 60, 84];       
+    const trialsPerCondition = 12; // 108 Total Trials
     
     let conditions = [];
     let currentTrialIndex = 0;
@@ -179,17 +196,17 @@
     let trialData = [];
     let missCount = 0;
 
-    // DOM Elements
     const startBtn = document.getElementById('start-btn');
     const actionTarget = document.getElementById('action-target');
     const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayBody = document.getElementById('overlay-body');
     const beginExpBtn = document.getElementById('begin-exp-btn');
     const downloadCsvBtn = document.getElementById('download-csv-btn');
     const trialCountEl = document.getElementById('trial-count');
     const feedbackFlash = document.getElementById('feedback-flash');
     const canvas = document.getElementById('canvas-container');
 
-    // Generate balanced randomized trial order
     function generateConditions() {
         let condList = [];
         for (let a of distances) {
@@ -199,7 +216,6 @@
                 }
             }
         }
-        // Fisher-Yates shuffle
         for (let i = condList.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [condList[i], condList[j]] = [condList[j], condList[i]];
@@ -207,7 +223,6 @@
         return condList;
     }
 
-    // Initialize Experiment Setup
     function initExperiment() {
         conditions = generateConditions();
         currentTrialIndex = 0;
@@ -217,12 +232,9 @@
         setupStartButton();
     }
 
-    // Position the home start button in the bottom-right thumb rest zone
     function setupStartButton() {
         const startSize = 64;
         const rect = canvas.getBoundingClientRect();
-        
-        // Positioned in bottom-right area (natural thumb rest for right-handers)
         const left = rect.width - startSize - 25;
         const top = rect.height - startSize - 35;
 
@@ -236,7 +248,6 @@
         trialActive = false;
     }
 
-    // Trigger next trial state
     function prepareTarget() {
         const currentCond = conditions[currentTrialIndex];
         const A = currentCond.A;
@@ -245,18 +256,14 @@
         const startRect = startBtn.getBoundingClientRect();
         const canvasRect = canvas.getBoundingClientRect();
 
-        // Calculate center of start button relative to canvas
         const startCenterX = (startRect.left + startRect.width / 2) - canvasRect.left;
         const startCenterY = (startRect.top + startRect.height / 2) - canvasRect.top;
 
-        // Generate angle reaching upward/leftward arc (typical thumb stretch range: 105° to 165°)
         const angle = (Math.PI / 180) * (105 + Math.random() * 60);
 
-        // Position target at distance A away along the angle
         let targetCenterX = startCenterX - A * Math.cos(angle - Math.PI/2);
         let targetCenterY = startCenterY - A * Math.sin(angle - Math.PI/2);
 
-        // Clamping to screen boundary padding
         const pad = W / 2 + 5;
         targetCenterX = Math.max(pad, Math.min(canvasRect.width - pad, targetCenterX));
         targetCenterY = Math.max(pad, Math.min(canvasRect.height - pad, targetCenterY));
@@ -266,30 +273,25 @@
         actionTarget.style.left = `${targetCenterX - W / 2}px`;
         actionTarget.style.top = `${targetCenterY - W / 2}px`;
         
-        // Hide start, show target
         startBtn.style.display = 'none';
         actionTarget.style.display = 'flex';
 
-        // Precise timing start
         missCount = 0;
         startTime = performance.now();
         trialActive = true;
     }
 
-    // Visual feedback handler
     function triggerFeedback(isHit) {
         feedbackFlash.className = isHit ? 'hit' : 'miss';
         setTimeout(() => { feedbackFlash.className = ''; }, 150);
     }
 
-    // Handle Start Click
     function handleStartPress(e) {
         e.preventDefault();
         e.stopPropagation();
         prepareTarget();
     }
 
-    // Handle Action Target Click
     function handleTargetPress(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -298,16 +300,13 @@
         const endTime = performance.now();
         const movementTime = Math.round(endTime - startTime);
         const currentCond = conditions[currentTrialIndex];
-        
-        // Shannon Formulation: ID = log2(A / W + 1)
-        const idBits = Math.log2(currentCond.A / currentCond.W + 1).toFixed(3);
+        const idBits = Math.log2(currentCond.A / currentCond.W + 1);
 
-        // Log record
         trialData.push({
             trial: currentTrialIndex + 1,
             distance_A: currentCond.A,
             width_W: currentCond.W,
-            id_bits: idBits,
+            id_bits: parseFloat(idBits.toFixed(3)),
             movement_time_ms: movementTime,
             errors: missCount
         });
@@ -323,7 +322,6 @@
         }
     }
 
-    // Track misclicks inside the canvas area during trial
     function handleCanvasMiss(e) {
         if (!trialActive) return;
         if (e.target === canvas || e.target === feedbackFlash) {
@@ -332,23 +330,65 @@
         }
     }
 
-    // Complete Experiment & Show Export Screen
     function endExperiment() {
         trialActive = false;
         actionTarget.style.display = 'none';
         startBtn.style.display = 'none';
         
-        overlay.querySelector('h2').textContent = 'Experiment Completed!';
-        overlay.querySelector('.instructions').innerHTML = `
-            <p>You have finished all 36 trials.</p>
-            <p>Download your raw dataset below to calculate your linear regression model ($MT = a + b \\cdot ID$) and embed the results on your page.</p>
+        // Compute Summary Data
+        const totalMT = trialData.reduce((acc, row) => acc + row.movement_time_ms, 0);
+        const avgMT = Math.round(totalMT / trialData.length);
+        const totalErrors = trialData.reduce((acc, row) => acc + (row.errors > 0 ? 1 : 0), 0);
+        const errorRate = ((totalErrors / trialData.length) * 100).toFixed(1);
+        
+        // Group by Index of Difficulty (ID)
+        let idGroups = {};
+        trialData.forEach(row => {
+            const key = row.id_bits.toFixed(2);
+            if (!idGroups[key]) idGroups[key] = [];
+            idGroups[key].push(row.movement_time_ms);
+        });
+
+        let tableRows = '';
+        Object.keys(idGroups).sort().forEach(idKey => {
+            const times = idGroups[idKey];
+            const avgTime = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+            tableRows += `<tr><td>${idKey} bits</td><td>${avgTime} ms</td><td>${times.length}</td></tr>`;
+        });
+
+        overlayTitle.textContent = 'Experiment Results';
+        overlayBody.innerHTML = `
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-val">${avgMT}ms</div>
+                    <div class="metric-lbl">Mean MT</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val">${errorRate}%</div>
+                    <div class="metric-lbl">Error Rate</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val">108</div>
+                    <div class="metric-lbl">Trials</div>
+                </div>
+            </div>
+            
+            <p><strong>Performance by Difficulty (ID):</strong></p>
+            <table>
+                <thead>
+                    <tr><th>ID (bits)</th><th>Mean MT</th><th>Reps</th></tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+            </table>
         `;
+        
         beginExpBtn.textContent = 'Restart Test';
         downloadCsvBtn.style.display = 'block';
         overlay.style.display = 'flex';
     }
 
-    // CSV Download Function
     function downloadCSV() {
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Trial,Distance_A,Width_W,ID_bits,MovementTime_ms,Errors\n";
@@ -366,7 +406,6 @@
         document.body.removeChild(link);
     }
 
-    // Event Listeners (Using pointerdown to remove mobile tap latency)
     startBtn.addEventListener('pointerdown', handleStartPress);
     actionTarget.addEventListener('pointerdown', handleTargetPress);
     canvas.addEventListener('pointerdown', handleCanvasMiss);
