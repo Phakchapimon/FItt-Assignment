@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Fitts' Law - One-Handed Mobile Experiment</title>
+  <title>Fitts' Law - Mobile Thumb Study</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -25,7 +25,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       display: flex;
@@ -70,7 +70,7 @@
     #hud {
       display: flex;
       justify-content: space-between;
-      padding: 8px 16px;
+      padding: 10px 16px;
       font-size: 0.85rem;
       font-weight: 600;
       background: rgba(0,0,0,0.2);
@@ -149,26 +149,6 @@
     .hidden {
       display: none !important;
     }
-
-    #results-table {
-      max-height: 220px;
-      overflow-y: auto;
-      width: 100%;
-      margin: 12px 0;
-      font-size: 0.75rem;
-      border-collapse: collapse;
-    }
-
-    #results-table th, #results-table td {
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 6px;
-      text-align: center;
-    }
-
-    #results-table th {
-      background: rgba(255,255,255,0.05);
-      color: var(--accent);
-    }
   </style>
 </head>
 <body>
@@ -176,38 +156,37 @@
 <div id="app">
   <header>
     <h1>Fitts' Law Study</h1>
-    <div class="sub">One-Handed Smartphone Thumb Tapping</div>
+    <div class="sub">One-Handed Mobile Interaction (100 Trials)</div>
   </header>
 
   <div id="hud">
     <span id="trial-hud">Trial: 0 / 100</span>
-    <span id="miss-hud">Misses: 0</span>
+    <span>Mode: Continuous Tapping</span>
   </div>
 
   <div id="stage">
     <div id="target"></div>
 
     <div id="overlay" class="modal">
-      <h2 id="modal-title">Thumb Tapping Experiment</h2>
+      <h2 id="modal-title">Mobile Thumb Experiment</h2>
       <p class="instructions" id="modal-desc">
         Hold your phone with <strong>one hand only</strong> and tap targets using <strong>ONLY your thumb</strong>.<br/><br/>
-        1. Tap the red target circle as quickly and accurately as possible.<br/>
-        2. The target will move to a new position after each tap.<br/>
-        3. Complete all <strong>100 trials</strong>.
+        • 16 conditions (4 Distances × 4 Widths)<br/>
+        • 6 repetitions per condition (100 total taps)<br/>
+        • Target distance $A$ is strictly preserved between taps.
       </p>
-      <button id="start-btn" class="btn">Start Experiment</button>
+      <button id="start-btn" class="btn">Start 100 Trials</button>
       <div id="complete-actions" class="hidden">
-        <button id="download-btn" class="btn btn-success">Download CSV</button>
-        <button id="restart-btn" class="btn">Restart</button>
+        <button id="download-btn" class="btn btn-success">Download CSV Data</button>
       </div>
-      <div id="summary-view" class="hidden"></div>
     </div>
   </div>
 </div>
 
 <script>
   const TOTAL_TRIALS = 100;
-  
+
+  // 16 Unique (A, W) Conditions
   const baseConditions = [
     { A: 100, W: 60 }, { A: 180, W: 60 }, { A: 260, W: 60 }, { A: 340, W: 60 },
     { A: 100, W: 45 }, { A: 180, W: 45 }, { A: 260, W: 45 }, { A: 340, W: 45 },
@@ -222,21 +201,14 @@
   let prevX = null;
   let prevY = null;
   let startTime = 0;
-  let trialMisses = 0;
-  let isRunning = false;
 
   const stage = document.getElementById('stage');
   const target = document.getElementById('target');
   const overlay = document.getElementById('overlay');
   const startBtn = document.getElementById('start-btn');
   const downloadBtn = document.getElementById('download-btn');
-  const restartBtn = document.getElementById('restart-btn');
   const completeActions = document.getElementById('complete-actions');
-  const summaryView = document.getElementById('summary-view');
   const trialHud = document.getElementById('trial-hud');
-  const missHud = document.getElementById('miss-hud');
-  const modalTitle = document.getElementById('modal-title');
-  const modalDesc = document.getElementById('modal-desc');
 
   function shuffle(arr) {
     let a = [...arr];
@@ -247,6 +219,7 @@
     return a;
   }
 
+  // Generate exactly 100 trials: 16 conditions * 6 repetitions = 96 + 4 extra
   function generateTrials() {
     let list = [];
     for (let c of baseConditions) {
@@ -254,24 +227,27 @@
         list.push({ A: c.A, W: c.W });
       }
     }
+    // Add 4 extra trials to hit 100
     list.push({ A: 100, W: 45 }, { A: 180, W: 45 }, { A: 260, W: 45 }, { A: 340, W: 45 });
     trialQueue = shuffle(list);
   }
 
-  function getValidPosition(A, W) {
+  // Calculate target position that is EXACTLY A pixels from previous target
+  function getExactDistancePosition(A, W) {
     const sw = stage.clientWidth;
     const sh = stage.clientHeight;
     const r = W / 2;
 
+    // First target initial placement
     if (prevX === null || prevY === null) {
       return {
-        x: r + 10 + Math.random() * (sw - W - 20),
-        y: r + 10 + Math.random() * (sh - W - 20)
+        x: sw / 2,
+        y: sh / 2
       };
     }
 
     let angles = [];
-    for (let a = 0; a < 360; a += 5) angles.push(a);
+    for (let a = 0; a < 360; a += 10) angles.push(a);
     angles = shuffle(angles);
 
     for (let deg of angles) {
@@ -279,14 +255,16 @@
       const x = prevX + Math.cos(rad) * A;
       const y = prevY + Math.sin(rad) * A;
 
-      if (x >= r + 5 && x <= sw - r - 5 && y >= r + 5 && y <= sh - r - 5) {
+      // Verify target stays fully inside screen bounds
+      if (x >= r + 10 && x <= sw - r - 10 && y >= r + 10 && y <= sh - r - 10) {
         return { x, y };
       }
     }
 
+    // Fallback: reverse angle if boundary restricts placement
     return {
-      x: r + 10 + Math.random() * (sw - W - 20),
-      y: r + 10 + Math.random() * (sh - W - 20)
+      x: Math.min(Math.max(r + 10, prevX - A), sw - r - 10),
+      y: Math.min(Math.max(r + 10, prevY), sh - r - 10)
     };
   }
 
@@ -298,7 +276,7 @@
 
     currentCondition = trialQueue[currentTrialIndex];
     const { A, W } = currentCondition;
-    const pos = getValidPosition(A, W);
+    const pos = getExactDistancePosition(A, W);
 
     prevX = pos.x;
     prevY = pos.y;
@@ -318,133 +296,47 @@
     currentTrialIndex = 0;
     prevX = null;
     prevY = null;
-    trialMisses = 0;
-    isRunning = true;
-    missHud.innerText = `Misses: 0`;
-
     overlay.classList.add('hidden');
     showNextTarget();
   });
 
   target.addEventListener('pointerdown', (e) => {
-    if (!isRunning) return;
-    e.stopPropagation();
     e.preventDefault();
-
     const mt = Math.round(performance.now() - startTime);
     const { A, W } = currentCondition;
     const id = Math.log2(A / W + 1);
 
     trialQueue[currentTrialIndex].ID = id;
     trialQueue[currentTrialIndex].MT = mt;
-    trialQueue[currentTrialIndex].Misses = trialMisses;
 
     currentTrialIndex++;
-    trialMisses = 0;
     showNextTarget();
   });
 
-  stage.addEventListener('pointerdown', (e) => {
-    if (!isRunning || e.target === target) return;
-    trialMisses++;
-    missHud.innerText = `Misses: ${trialMisses}`;
-  });
-
-  function getSummary() {
-    const groups = {};
-    for (let t of trialQueue) {
-      const key = `${t.A}_${t.W}`;
-      if (!groups[key]) {
-        groups[key] = { A: t.A, W: t.W, ID: t.ID, MTs: [], Misses: 0 };
-      }
-      groups[key].MTs.push(t.MT);
-      groups[key].Misses += t.Misses;
-    }
-
-    return Object.values(groups).map((g) => {
-      const avgMT = g.MTs.reduce((a, b) => a + b, 0) / g.MTs.length;
-      return {
-        A: g.A,
-        W: g.W,
-        ID: g.ID,
-        AvgMT: avgMT,
-        N: g.MTs.length,
-        Misses: g.Misses
-      };
-    });
-  }
-
   function completeExperiment() {
-    isRunning = false;
     target.style.display = 'none';
-
-    modalTitle.innerText = "100 Trials Complete!";
-    modalDesc.innerText = "Data gathered successfully. Review summary below or export as CSV.";
+    document.getElementById('modal-title').innerText = "100 Trials Complete!";
+    document.getElementById('modal-desc').innerText = "Dataset ready. Click below to export your CSV for linear regression analysis.";
     startBtn.classList.add('hidden');
     completeActions.classList.remove('hidden');
-
-    const summary = getSummary();
-    let html = `
-      <table id="results-table">
-        <thead>
-          <tr>
-            <th>A</th>
-            <th>W</th>
-            <th>ID (bits)</th>
-            <th>Mean MT (ms)</th>
-            <th>Misses</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-
-    summary.forEach((r) => {
-      html += `
-        <tr>
-          <td>${r.A}</td>
-          <td>${r.W}</td>
-          <td>${r.ID.toFixed(2)}</td>
-          <td>${Math.round(r.AvgMT)}</td>
-          <td>${r.Misses}</td>
-        </tr>
-      `;
-    });
-    html += `</tbody></table>`;
-
-    summaryView.innerHTML = html;
-    summaryView.classList.remove('hidden');
     overlay.classList.remove('hidden');
   }
 
   downloadBtn.addEventListener('click', () => {
-    let csv = "Trial,A_px,W_px,ID_bits,MT_ms,Misses\n";
+    let csv = "Trial,Distance_A_px,Width_W_px,ID_bits,MovementTime_ms\n";
     trialQueue.forEach((t, i) => {
-      csv += `${i + 1},${t.A},${t.W},${t.ID.toFixed(4)},${t.MT},${t.Misses}\n`;
-    });
-
-    csv += "\nSUMMARY MATRIX\n";
-    csv += "A_px,W_px,ID_bits,Mean_MT_ms,Trial_Count,Total_Misses\n";
-    getSummary().forEach((s) => {
-      csv += `${s.A},${s.W},${s.ID.toFixed(4)},${s.AvgMT.toFixed(2)},${s.N},${s.Misses}\n`;
+      csv += `${i + 1},${t.A},${t.W},${t.ID.toFixed(4)},${t.MT}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "fitts_law_100_trials_summary.csv";
+    a.download = "fitts_law_100_trials_data.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  });
-
-  restartBtn.addEventListener('click', () => {
-    summaryView.classList.add('hidden');
-    completeActions.classList.add('hidden');
-    startBtn.classList.remove('hidden');
-    modalTitle.innerText = "Thumb Tapping Experiment";
-    modalDesc.innerHTML = `Hold your phone with <strong>one hand only</strong> and tap targets using <strong>ONLY your thumb</strong>.`;
   });
 </script>
 </body>
