@@ -5,7 +5,7 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Fitts' Law - One-Handed Smartphone Experiment</title>
+<title>Fitts' Law - Smartphone Thumb Experiment</title>
 
 <style>
     * {
@@ -15,862 +15,966 @@
 
     body {
         margin: 0;
+        background: #e8e8e8;
         font-family: Arial, sans-serif;
-        background: #f2f2f2;
         color: #222;
-        text-align: center;
-        touch-action: manipulation;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
     }
 
-    h1 {
-        font-size: 22px;
-        margin: 15px 10px 5px;
+    .container {
+        width: 100%;
+        max-width: 480px;
+        min-height: 100vh;
+        background: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    header {
+        padding: 16px;
+        text-align: center;
+        background: #222;
+        color: white;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    header p {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: #ddd;
     }
 
     #instructions {
-        max-width: 600px;
-        margin: 0 auto 10px;
-        padding: 0 15px;
-        font-size: 14px;
+        padding: 16px;
+        text-align: center;
         line-height: 1.5;
+        font-size: 14px;
     }
 
-    #status {
-        font-weight: bold;
-        margin: 8px;
-    }
-
-    #phone {
+    #experimentArea {
         position: relative;
-        width: min(390px, 94vw);
-        height: min(760px, 72vh);
-        min-height: 500px;
-        margin: 10px auto;
-        background: white;
-        border: 8px solid #222;
-        border-radius: 30px;
+        flex: 1;
+        min-height: 560px;
+        margin: 0 12px 12px;
+        border: 2px solid #aaa;
+        border-radius: 16px;
+        background: #f7f7f7;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         touch-action: none;
-    }
-
-    #topbar {
-        height: 45px;
-        background: #f5f5f5;
-        border-bottom: 1px solid #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        color: #666;
     }
 
     #target {
         position: absolute;
         border-radius: 50%;
-        background: #e53935;
-        border: 2px solid #b71c1c;
-        transform: translate(-50%, -50%);
+        background: #222;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         display: none;
-        touch-action: none;
+        touch-action: manipulation;
     }
 
-    #startButton,
-    #downloadButton,
-    #restartButton {
-        border: none;
-        border-radius: 8px;
-        padding: 11px 20px;
-        margin: 5px;
-        font-size: 15px;
-        cursor: pointer;
+    #target:active {
+        transform: scale(0.95);
     }
 
     #startButton {
-        background: #1976d2;
+        display: block;
+        margin: 10px auto 20px;
+        padding: 14px 28px;
+        font-size: 17px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        background: #222;
         color: white;
+        cursor: pointer;
     }
 
-    #downloadButton {
-        background: #388e3c;
-        color: white;
-        display: none;
+    #startButton:active {
+        transform: scale(0.98);
     }
 
-    #restartButton {
-        background: #757575;
-        color: white;
-        display: none;
+    #status {
+        text-align: center;
+        font-size: 14px;
+        padding: 8px 16px;
     }
 
-    #results {
-        max-width: 900px;
-        margin: 20px auto;
-        padding: 10px;
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
+    .stats {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 12px;
+        background: #eee;
         font-size: 13px;
     }
 
-    th, td {
-        border: 1px solid #ccc;
-        padding: 6px;
+    .stat {
+        text-align: center;
     }
 
-    th {
-        background: #eee;
+    .stat strong {
+        display: block;
+        font-size: 16px;
     }
 
-    #completeMessage {
+    #results {
         display: none;
-        font-size: 18px;
+        padding: 20px;
+    }
+
+    #results h2 {
+        margin-top: 0;
+    }
+
+    .resultBox {
+        background: #f2f2f2;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 8px;
+    }
+
+    .buttonRow {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .buttonRow button {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
         font-weight: bold;
-        margin: 15px;
+        cursor: pointer;
+    }
+
+    #downloadButton {
+        background: #222;
+        color: white;
+    }
+
+    #restartButton {
+        background: #ddd;
+        color: #222;
+    }
+
+    @media (max-height: 650px) {
+        #experimentArea {
+            min-height: 450px;
+        }
     }
 </style>
 </head>
 
 <body>
 
-<h1>Fitts' Law: One-Handed Smartphone Thumb Interaction</h1>
+<div class="container">
 
-<div id="instructions">
-    <p>
-        Hold the smartphone with one hand and use the thumb of the same hand
-        to tap the red target.
-    </p>
+    <header>
+        <h1>Fitts' Law Experiment</h1>
+        <p>One-Handed Smartphone Thumb Interaction</p>
+    </header>
 
-    <p>
-        Tap the target as quickly and accurately as possible.
-        The target will move after every successful tap.
-    </p>
-
-    <p>
-        There will be <strong>100 successful taps</strong>.
-    </p>
-</div>
-
-<div id="status">
-    Ready to begin
-</div>
-
-<button id="startButton">Start Experiment</button>
-
-<div id="phone">
-
-    <div id="topbar">
-        One-Handed Smartphone Task
+    <div id="instructions">
+        <strong>Instructions</strong><br>
+        Hold the phone with one hand and use the thumb of the same hand
+        to tap the target as quickly and accurately as possible.
+        <br><br>
+        The target will appear at different distances and sizes.
+        Try to be fast while still tapping the target accurately.
     </div>
 
-    <div id="target"></div>
+    <div class="stats">
+        <div class="stat">
+            Trial
+            <strong id="trialDisplay">0 / 100</strong>
+        </div>
+
+        <div class="stat">
+            Misses
+            <strong id="missDisplay">0</strong>
+        </div>
+
+        <div class="stat">
+            Condition
+            <strong id="conditionDisplay">-</strong>
+        </div>
+    </div>
+
+    <div id="status">
+        Press START when you are ready.
+    </div>
+
+    <div id="experimentArea">
+        <div id="target"></div>
+    </div>
+
+    <button id="startButton">START EXPERIMENT</button>
+
+    <div id="results">
+
+        <h2>Experiment Complete</h2>
+
+        <div class="resultBox">
+            <strong>Total Trials:</strong>
+            <span id="finalTrials"></span>
+        </div>
+
+        <div class="resultBox">
+            <strong>Total Misses:</strong>
+            <span id="finalMisses"></span>
+        </div>
+
+        <div class="resultBox">
+            <strong>Successful Trials:</strong>
+            <span id="successfulTrials"></span>
+        </div>
+
+        <div class="resultBox">
+            <strong>Average Movement Time:</strong>
+            <span id="averageMT"></span> ms
+        </div>
+
+        <div class="buttonRow">
+            <button id="downloadButton">
+                DOWNLOAD CSV
+            </button>
+
+            <button id="restartButton">
+                RESTART
+            </button>
+        </div>
+
+    </div>
 
 </div>
-
-<div id="completeMessage">
-    Experiment complete! You can download your data below.
-</div>
-
-<button id="downloadButton">
-    Download CSV
-</button>
-
-<button id="restartButton">
-    Restart Experiment
-</button>
-
-<div id="results"></div>
 
 <script>
 
-    // ============================================================
-    // EXPERIMENT SETTINGS
-    // ============================================================
+/* =========================================================
+   EXPERIMENT SETTINGS
+   ========================================================= */
 
-    const TOTAL_TRIALS = 100;
+// Target distances in pixels
+const DISTANCES = [80, 120, 160, 200, 240];
 
-    /*
-        We use several target widths and distances.
+// Target widths in pixels
+const WIDTHS = [20, 30, 45, 60];
 
-        A = distance between the centers of two consecutive targets
-        W = target diameter
-    */
+// Number of repetitions for each A/W condition
+const REPETITIONS = 5;
 
-    const conditions = [
-        { A: 80,  W: 60 },
-        { A: 120, W: 60 },
-        { A: 160, W: 60 },
-        { A: 200, W: 60 },
-
-        { A: 80,  W: 45 },
-        { A: 120, W: 45 },
-        { A: 160, W: 45 },
-        { A: 200, W: 45 },
-
-        { A: 80,  W: 30 },
-        { A: 120, W: 30 },
-        { A: 160, W: 30 },
-        { A: 200, W: 30 },
-
-        { A: 80,  W: 20 },
-        { A: 120, W: 20 },
-        { A: 160, W: 20 },
-        { A: 200, W: 20 }
-    ];
+// Total trials:
+// 5 distances × 4 widths × 5 repetitions = 100
+const TOTAL_TRIALS =
+    DISTANCES.length *
+    WIDTHS.length *
+    REPETITIONS;
 
 
-    // ============================================================
-    // VARIABLES
-    // ============================================================
+/* =========================================================
+   VARIABLES
+   ========================================================= */
 
-    let trials = [];
-    let currentTrial = 0;
+const experimentArea =
+    document.getElementById("experimentArea");
 
-    let currentCondition = null;
+const target =
+    document.getElementById("target");
 
-    let previousX = null;
-    let previousY = null;
+const startButton =
+    document.getElementById("startButton");
 
-    let startTime = null;
+const statusText =
+    document.getElementById("status");
 
-    let experimentRunning = false;
+const trialDisplay =
+    document.getElementById("trialDisplay");
 
-    let misses = 0;
+const missDisplay =
+    document.getElementById("missDisplay");
 
+const conditionDisplay =
+    document.getElementById("conditionDisplay");
 
-    // ============================================================
-    // HTML ELEMENTS
-    // ============================================================
+const results =
+    document.getElementById("results");
 
-    const phone = document.getElementById("phone");
-    const target = document.getElementById("target");
+let trials = [];
 
-    const startButton = document.getElementById("startButton");
-    const downloadButton = document.getElementById("downloadButton");
-    const restartButton = document.getElementById("restartButton");
+let currentTrialIndex = 0;
 
-    const status = document.getElementById("status");
-    const completeMessage = document.getElementById("completeMessage");
+let currentCondition = null;
 
-    const resultsDiv = document.getElementById("results");
+let currentTargetPosition = null;
 
+let trialStartTime = null;
 
-    // ============================================================
-    // SHUFFLE FUNCTION
-    // ============================================================
+let totalMisses = 0;
 
-    function shuffle(array) {
-
-        let arr = [...array];
-
-        for (let i = arr.length - 1; i > 0; i--) {
-
-            const j = Math.floor(Math.random() * (i + 1));
-
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-
-        return arr;
-    }
+let experimentRunning = false;
 
 
-    // ============================================================
-    // CREATE 100 TRIALS
-    // ============================================================
+/* =========================================================
+   CREATE BALANCED TRIAL LIST
+   ========================================================= */
 
-    function createTrials() {
+function createTrialList() {
 
-        let trialList = [];
+    let list = [];
 
-        /*
-            Repeat each condition several times.
+    let trialNumber = 1;
 
-            16 conditions × 6 repetitions = 96 trials
+    for (let a of DISTANCES) {
 
-            We then add 4 additional trials to reach 100.
-        */
+        for (let w of WIDTHS) {
 
-        for (let condition of conditions) {
+            for (let repetition = 1;
+                 repetition <= REPETITIONS;
+                 repetition++) {
 
-            for (let r = 0; r < 6; r++) {
-
-                trialList.push({
-                    A: condition.A,
-                    W: condition.W
+                list.push({
+                    trial: trialNumber,
+                    A: a,
+                    W: w,
+                    repetition: repetition
                 });
 
+                trialNumber++;
             }
         }
-
-        // Add 4 additional balanced trials
-        trialList.push({ A: 80,  W: 30 });
-        trialList.push({ A: 120, W: 30 });
-        trialList.push({ A: 160, W: 30 });
-        trialList.push({ A: 200, W: 30 });
-
-        trials = shuffle(trialList);
-
-        currentTrial = 0;
     }
 
+    return list;
+}
 
-    // ============================================================
-    // CALCULATE INDEX OF DIFFICULTY
-    // ============================================================
 
-    function calculateID(A, W) {
+/* =========================================================
+   SHUFFLE TRIAL ORDER
+   ========================================================= */
 
-        return Math.log2((A / W) + 1);
+function shuffle(array) {
 
+    for (let i = array.length - 1;
+         i > 0;
+         i--) {
+
+        const j =
+            Math.floor(Math.random() * (i + 1));
+
+        [array[i], array[j]] =
+            [array[j], array[i]];
     }
 
+    return array;
+}
 
-    // ============================================================
-    // GET A VALID POSITION EXACTLY A PIXELS FROM PREVIOUS TARGET
-    // ============================================================
 
-    function findNextPosition(A, W) {
+/* =========================================================
+   START EXPERIMENT
+   ========================================================= */
 
-        const phoneWidth = phone.clientWidth;
-        const phoneHeight = phone.clientHeight;
+startButton.addEventListener("click", startExperiment);
 
-        const topBarHeight = 45;
 
-        const radius = W / 2;
+function startExperiment() {
 
-        /*
-            We try many possible angles.
+    trials = createTrialList();
 
-            The new target must be exactly A pixels
-            from the previous target center.
-        */
+    shuffle(trials);
 
-        let possibleAngles = [];
+    currentTrialIndex = 0;
 
-        for (let angle = 0; angle < 360; angle += 5) {
+    totalMisses = 0;
 
-            possibleAngles.push(angle);
+    experimentRunning = true;
 
-        }
+    startButton.style.display = "none";
 
-        possibleAngles = shuffle(possibleAngles);
+    results.style.display = "none";
 
-        for (let angle of possibleAngles) {
+    document.getElementById("instructions").style.display = "none";
 
-            const radians = angle * Math.PI / 180;
+    statusText.textContent =
+        "Tap the target as quickly and accurately as possible.";
 
-            const x =
-                previousX + Math.cos(radians) * A;
+    updateDisplays();
 
-            const y =
-                previousY + Math.sin(radians) * A;
+    /*
+       Place the first target randomly.
+       The first target is only a starting point.
+       Movement-time data begin from the second target.
+    */
 
-            /*
-                Make sure the whole target stays inside
-                the usable smartphone screen.
-            */
+    placeFirstTarget();
+}
 
-            if (
-                x >= radius &&
-                x <= phoneWidth - radius &&
-                y >= topBarHeight + radius &&
-                y <= phoneHeight - radius
-            ) {
 
-                return {
-                    x: x,
-                    y: y
-                };
+/* =========================================================
+   FIRST TARGET
+   ========================================================= */
 
-            }
-        }
+function placeFirstTarget() {
 
-        /*
-            If no exact position is available, try the
-            opposite direction.
-        */
+    const width = 45;
 
-        const oppositeX = previousX - A;
-        const oppositeY = previousY;
+    const areaWidth =
+        experimentArea.clientWidth;
+
+    const areaHeight =
+        experimentArea.clientHeight;
+
+    const margin = width / 2 + 10;
+
+    const x =
+        margin +
+        Math.random() *
+        (areaWidth - 2 * margin);
+
+    const y =
+        margin +
+        Math.random() *
+        (areaHeight - 2 * margin);
+
+    currentTargetPosition = {
+        x: x,
+        y: y
+    };
+
+    target.style.width = width + "px";
+    target.style.height = width + "px";
+
+    target.style.left =
+        (x - width / 2) + "px";
+
+    target.style.top =
+        (y - width / 2) + "px";
+
+    target.style.display = "block";
+
+    /*
+       The first target does not count as a Fitts'
+       movement trial. It establishes the starting position.
+    */
+
+    currentTrialIndex = 0;
+
+    setTimeout(() => {
+
+        showNextTarget();
+
+    }, 300);
+}
+
+
+/* =========================================================
+   FIND VALID TARGET POSITION
+   ========================================================= */
+
+function findTargetPosition(A, W) {
+
+    const areaWidth =
+        experimentArea.clientWidth;
+
+    const areaHeight =
+        experimentArea.clientHeight;
+
+    const radius = W / 2;
+
+    const padding = 8;
+
+    const minX = radius + padding;
+    const maxX = areaWidth - radius - padding;
+
+    const minY = radius + padding;
+    const maxY = areaHeight - radius - padding;
+
+
+    /*
+       Try many random directions.
+
+       The new target must be exactly A pixels
+       from the center of the previous target.
+    */
+
+    for (let attempt = 0; attempt < 1000; attempt++) {
+
+        const angle =
+            Math.random() * Math.PI * 2;
+
+        const newX =
+            currentTargetPosition.x +
+            A * Math.cos(angle);
+
+        const newY =
+            currentTargetPosition.y +
+            A * Math.sin(angle);
 
         if (
-            oppositeX >= radius &&
-            oppositeX <= phoneWidth - radius &&
-            oppositeY >= topBarHeight + radius &&
-            oppositeY <= phoneHeight - radius
+            newX >= minX &&
+            newX <= maxX &&
+            newY >= minY &&
+            newY <= maxY
         ) {
 
             return {
-                x: oppositeX,
-                y: oppositeY
+                x: newX,
+                y: newY
             };
-
         }
-
-        /*
-            Last fallback:
-            choose a valid random position.
-
-            This should rarely be needed with the
-            current A values.
-        */
-
-        return randomPosition(W);
-
     }
 
 
-    // ============================================================
-    // RANDOM FIRST TARGET
-    // ============================================================
-
-    function randomPosition(W) {
-
-        const radius = W / 2;
-
-        const minX = radius + 5;
-        const maxX = phone.clientWidth - radius - 5;
-
-        const minY = 45 + radius + 5;
-        const maxY = phone.clientHeight - radius - 5;
-
-        return {
-            x: minX + Math.random() * (maxX - minX),
-            y: minY + Math.random() * (maxY - minY)
-        };
-
-    }
-
-
-    // ============================================================
-    // SHOW TARGET
-    // ============================================================
-
-    function showTarget() {
-
-        if (currentTrial >= TOTAL_TRIALS) {
-
-            finishExperiment();
-
-            return;
-        }
-
-        currentCondition = trials[currentTrial];
-
-        const A = currentCondition.A;
-        const W = currentCondition.W;
-
-        target.style.width = W + "px";
-        target.style.height = W + "px";
-
-        let position;
-
-        /*
-            First trial:
-            place target randomly.
-        */
-
-        if (previousX === null) {
-
-            position = randomPosition(W);
-
-        }
-
-        /*
-            Later trials:
-            target must be A pixels away from
-            the previous target center.
-        */
-
-        else {
-
-            position = findNextPosition(A, W);
-
-        }
-
-        previousX = position.x;
-        previousY = position.y;
-
-        target.style.left = position.x + "px";
-        target.style.top = position.y + "px";
-
-        target.style.display = "block";
-
-        /*
-            Start timing when target appears.
-        */
-
-        startTime = performance.now();
-
-        status.textContent =
-            "Trial " +
-            (currentTrial + 1) +
-            " / " +
-            TOTAL_TRIALS;
-    }
-
-
-    // ============================================================
-    // START EXPERIMENT
-    // ============================================================
-
-    startButton.addEventListener("click", function() {
-
-        createTrials();
-
-        previousX = null;
-        previousY = null;
-
-        startTime = null;
-
-        misses = 0;
-
-        experimentRunning = true;
-
-        startButton.style.display = "none";
-
-        downloadButton.style.display = "none";
-
-        restartButton.style.display = "none";
-
-        completeMessage.style.display = "none";
-
-        resultsDiv.innerHTML = "";
-
-        status.textContent = "Get ready...";
-
-        /*
-            Short delay before experiment starts.
-        */
-
-        setTimeout(function() {
-
-            showTarget();
-
-        }, 800);
-
-    });
-
-
-    // ============================================================
-    // TARGET TAP
-    // ============================================================
-
-    target.addEventListener("pointerdown", function(event) {
-
-        if (!experimentRunning) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const endTime = performance.now();
-
-        const movementTime = endTime - startTime;
-
-        const A = currentCondition.A;
-
-        const W = currentCondition.W;
-
-        const ID = calculateID(A, W);
-
-        /*
-            Save trial data.
-        */
-
-        trials[currentTrial].ID = ID;
-
-        trials[currentTrial].MT = movementTime;
-
-        trials[currentTrial].Misses = misses;
-
-        currentTrial++;
-
-        misses = 0;
-
-        /*
-            Hide target briefly before showing
-            the next target.
-        */
-
-        target.style.display = "none";
-
-        setTimeout(function() {
-
-            showTarget();
-
-        }, 100);
-
-    });
-
-
-    // ============================================================
-    // COUNT MISSES
-    // ============================================================
-
-    phone.addEventListener("pointerdown", function(event) {
-
-        if (!experimentRunning) {
-            return;
-        }
-
-        /*
-            If the user taps the phone but not the target,
-            count it as a miss.
-        */
-
-        if (event.target !== target) {
-
-            misses++;
-
-        }
-
-    });
-
-
-    // ============================================================
-    // FINISH EXPERIMENT
-    // ============================================================
-
-    function finishExperiment() {
-
-        experimentRunning = false;
-
-        target.style.display = "none";
-
-        status.textContent = "Experiment complete";
-
-        completeMessage.style.display = "block";
-
-        downloadButton.style.display = "inline-block";
-
-        restartButton.style.display = "inline-block";
-
-        showResults();
-
-    }
-
-
-    // ============================================================
-    // CALCULATE SUMMARY
-    // ============================================================
-
-    function calculateSummary() {
-
-        const groups = {};
-
-        for (let trial of trials) {
-
-            const key =
-                trial.A + "_" + trial.W;
-
-            if (!groups[key]) {
-
-                groups[key] = {
-                    A: trial.A,
-                    W: trial.W,
-                    ID: calculateID(trial.A, trial.W),
-                    MTs: [],
-                    Misses: 0
-                };
-
-            }
-
-            /*
-                Ignore the first measurement of each condition
-                as a warm-up.
-
-                This is similar to the CS Field Guide experiment.
-            */
-
-            groups[key].MTs.push(trial.MT);
-
-            groups[key].Misses += trial.Misses || 0;
-
-        }
-
-        return Object.values(groups).map(group => {
-
-            /*
-                Average movement time.
-            */
-
-            const averageMT =
-                group.MTs.reduce((sum, value) => sum + value, 0)
-                / group.MTs.length;
+    /*
+       If no valid random direction was found,
+       try fixed directions.
+    */
+
+    const angles = [
+        0,
+        Math.PI / 2,
+        Math.PI,
+        3 * Math.PI / 2,
+        Math.PI / 4,
+        3 * Math.PI / 4,
+        5 * Math.PI / 4,
+        7 * Math.PI / 4
+    ];
+
+    for (let angle of angles) {
+
+        const newX =
+            currentTargetPosition.x +
+            A * Math.cos(angle);
+
+        const newY =
+            currentTargetPosition.y +
+            A * Math.sin(angle);
+
+        if (
+            newX >= minX &&
+            newX <= maxX &&
+            newY >= minY &&
+            newY <= maxY
+        ) {
 
             return {
-                A: group.A,
-                W: group.W,
-                ID: group.ID,
-                AverageMT: averageMT,
-                Misses: group.Misses,
-                N: group.MTs.length
+                x: newX,
+                y: newY
             };
+        }
+    }
 
-        });
+    /*
+       If the current location cannot produce
+       the required distance, restart from a
+       safe location.
+    */
 
+    return null;
+}
+
+
+/* =========================================================
+   SHOW NEXT TARGET
+   ========================================================= */
+
+function showNextTarget() {
+
+    if (!experimentRunning) {
+        return;
+    }
+
+    if (currentTrialIndex >= TOTAL_TRIALS) {
+
+        finishExperiment();
+
+        return;
+    }
+
+    currentCondition =
+        trials[currentTrialIndex];
+
+    const A = currentCondition.A;
+
+    const W = currentCondition.W;
+
+    const newPosition =
+        findTargetPosition(A, W);
+
+
+    /*
+       If a valid position cannot be found,
+       place the current target in a safe location
+       and try again.
+    */
+
+    if (!newPosition) {
+
+        const areaWidth =
+            experimentArea.clientWidth;
+
+        const areaHeight =
+            experimentArea.clientHeight;
+
+        currentTargetPosition = {
+            x: areaWidth / 2,
+            y: areaHeight / 2
+        };
+
+        showNextTarget();
+
+        return;
     }
 
 
-    // ============================================================
-    // DISPLAY RESULTS
-    // ============================================================
+    currentTargetPosition =
+        newPosition;
 
-    function showResults() {
 
-        const summary = calculateSummary();
+    /* Draw target */
 
-        let html = `
-            <h2>Results</h2>
+    target.style.width = W + "px";
 
-            <table>
+    target.style.height = W + "px";
 
-                <tr>
-                    <th>A (pixels)</th>
-                    <th>W (pixels)</th>
-                    <th>ID (bits)</th>
-                    <th>Average MT (ms)</th>
-                    <th>Trials</th>
-                    <th>Misses</th>
-                </tr>
-        `;
+    target.style.left =
+        (newPosition.x - W / 2) + "px";
 
-        for (let row of summary) {
+    target.style.top =
+        (newPosition.y - W / 2) + "px";
 
-            html += `
-                <tr>
-                    <td>${row.A}</td>
-                    <td>${row.W}</td>
-                    <td>${row.ID.toFixed(3)}</td>
-                    <td>${row.AverageMT.toFixed(2)}</td>
-                    <td>${row.N}</td>
-                    <td>${row.Misses}</td>
-                </tr>
-            `;
+    target.style.display = "block";
+
+
+    /* Update display */
+
+    conditionDisplay.textContent =
+        "A=" + A + ", W=" + W;
+
+    trialDisplay.textContent =
+        (currentTrialIndex + 1) +
+        " / " +
+        TOTAL_TRIALS;
+
+
+    /*
+       Start timing when the target appears.
+
+       This is a simple touchscreen implementation.
+    */
+
+    trialStartTime =
+        performance.now();
+}
+
+
+/* =========================================================
+   TARGET CLICK / TOUCH
+   ========================================================= */
+
+target.addEventListener("pointerdown", handleTargetHit);
+
+
+function handleTargetHit(event) {
+
+    if (!experimentRunning) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const endTime =
+        performance.now();
+
+    const movementTime =
+        endTime - trialStartTime;
+
+
+    const A =
+        currentCondition.A;
+
+    const W =
+        currentCondition.W;
+
+
+    /*
+       Standard Shannon formulation:
+       ID = log2(A / W + 1)
+    */
+
+    const ID =
+        Math.log2((A / W) + 1);
+
+
+    /*
+       Save successful trial
+    */
+
+    trials[currentTrialIndex].MT =
+        movementTime;
+
+    trials[currentTrialIndex].ID =
+        ID;
+
+    trials[currentTrialIndex].misses =
+        currentCondition.misses || 0;
+
+
+    trials[currentTrialIndex].targetX =
+        currentTargetPosition.x;
+
+    trials[currentTrialIndex].targetY =
+        currentTargetPosition.y;
+
+
+    /*
+       Move to next trial
+    */
+
+    currentTrialIndex++;
+
+    updateDisplays();
+
+    showNextTarget();
+}
+
+
+/* =========================================================
+   RECORD MISSES
+   ========================================================= */
+
+experimentArea.addEventListener(
+    "pointerdown",
+    handleMiss
+);
+
+
+function handleMiss(event) {
+
+    if (!experimentRunning) {
+        return;
+    }
+
+    /*
+       If the user touched the target,
+       target's pointerdown handler already handles it.
+    */
+
+    if (event.target === target) {
+        return;
+    }
+
+    totalMisses++;
+
+    if (currentCondition) {
+
+        currentCondition.misses =
+            (currentCondition.misses || 0) + 1;
+    }
+
+    missDisplay.textContent =
+        totalMisses;
+}
+
+
+/* =========================================================
+   UPDATE DISPLAY
+   ========================================================= */
+
+function updateDisplays() {
+
+    trialDisplay.textContent =
+        Math.min(
+            currentTrialIndex + 1,
+            TOTAL_TRIALS
+        ) +
+        " / " +
+        TOTAL_TRIALS;
+
+    missDisplay.textContent =
+        totalMisses;
+}
+
+
+/* =========================================================
+   FINISH EXPERIMENT
+   ========================================================= */
+
+function finishExperiment() {
+
+    experimentRunning = false;
+
+    target.style.display = "none";
+
+    statusText.textContent =
+        "Experiment complete.";
+
+    document.getElementById("experimentArea")
+        .style.display = "none";
+
+    document.querySelector(".stats")
+        .style.display = "none";
+
+    results.style.display = "block";
+
+
+    /*
+       Calculate average movement time
+    */
+
+    const successfulTrials =
+        trials.filter(
+            trial =>
+                typeof trial.MT === "number"
+        );
+
+    const average =
+        successfulTrials.length > 0
+            ? successfulTrials.reduce(
+                (sum, trial) =>
+                    sum + trial.MT,
+                0
+              ) / successfulTrials.length
+            : 0;
+
+
+    document.getElementById("finalTrials")
+        .textContent =
+        TOTAL_TRIALS;
+
+    document.getElementById("finalMisses")
+        .textContent =
+        totalMisses;
+
+    document.getElementById("successfulTrials")
+        .textContent =
+        successfulTrials.length;
+
+    document.getElementById("averageMT")
+        .textContent =
+        average.toFixed(2);
+}
+
+
+/* =========================================================
+   DOWNLOAD CSV
+   ========================================================= */
+
+document.getElementById("downloadButton")
+    .addEventListener(
+        "click",
+        downloadCSV
+    );
+
+
+function downloadCSV() {
+
+    /*
+       CSV columns
+    */
+
+    const headers = [
+        "Trial",
+        "A",
+        "W",
+        "ID",
+        "MT_ms",
+        "Misses",
+        "Target_X",
+        "Target_Y"
+    ];
+
+
+    const rows = trials.map(trial => [
+
+        trial.trial,
+
+        trial.A,
+
+        trial.W,
+
+        trial.ID !== undefined
+            ? trial.ID.toFixed(4)
+            : "",
+
+        trial.MT !== undefined
+            ? trial.MT.toFixed(2)
+            : "",
+
+        trial.misses || 0,
+
+        trial.targetX !== undefined
+            ? trial.targetX.toFixed(2)
+            : "",
+
+        trial.targetY !== undefined
+            ? trial.targetY.toFixed(2)
+            : ""
+    ]);
+
+
+    let csv =
+        headers.join(",") +
+        "\n";
+
+
+    for (let row of rows) {
+
+        csv +=
+            row.join(",") +
+            "\n";
+    }
+
+
+    const blob =
+        new Blob(
+            [csv],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "fitts_law_thumb_experiment.csv";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
+
+/* =========================================================
+   RESTART
+   ========================================================= */
+
+document.getElementById("restartButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            location.reload();
 
         }
-
-        html += "</table>";
-
-        resultsDiv.innerHTML = html;
-
-    }
-
-
-    // ============================================================
-    // DOWNLOAD CSV
-    // ============================================================
-
-    downloadButton.addEventListener("click", function() {
-
-        let csv =
-            "Trial,A,W,ID,MT_ms,Misses\n";
-
-        trials.forEach(function(trial, index) {
-
-            csv +=
-                (index + 1) + "," +
-                trial.A + "," +
-                trial.W + "," +
-                trial.ID.toFixed(4) + "," +
-                trial.MT.toFixed(2) + "," +
-                (trial.Misses || 0) +
-                "\n";
-
-        });
-
-        /*
-            Also add a summary section.
-        */
-
-        csv += "\n";
-
-        csv +=
-            "Summary\n";
-
-        csv +=
-            "A,W,ID,Average_MT_ms,Trials,Misses\n";
-
-        const summary = calculateSummary();
-
-        summary.forEach(function(row) {
-
-            csv +=
-                row.A + "," +
-                row.W + "," +
-                row.ID.toFixed(4) + "," +
-                row.AverageMT.toFixed(2) + "," +
-                row.N + "," +
-                row.Misses +
-                "\n";
-
-        });
-
-
-        const blob =
-            new Blob([csv], {
-                type: "text/csv;charset=utf-8;"
-            });
-
-        const url =
-            URL.createObjectURL(blob);
-
-        const link =
-            document.createElement("a");
-
-        link.href = url;
-
-        link.download =
-            "fitts_law_smartphone_results.csv";
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(url);
-
-    });
-
-
-    // ============================================================
-    // RESTART
-    // ============================================================
-
-    restartButton.addEventListener("click", function() {
-
-        experimentRunning = false;
-
-        target.style.display = "none";
-
-        previousX = null;
-        previousY = null;
-
-        startTime = null;
-
-        currentTrial = 0;
-
-        trials = [];
-
-        resultsDiv.innerHTML = "";
-
-        completeMessage.style.display = "none";
-
-        downloadButton.style.display = "none";
-
-        restartButton.style.display = "none";
-
-        startButton.style.display = "inline-block";
-
-        status.textContent = "Ready to begin";
-
-    });
+    );
 
 </script>
 
