@@ -4,313 +4,1320 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Mobile Thumb Fitts' Law Experiment</title>
+
     <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-        body { margin: 0; padding: 0; background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        #phone-frame { width: 100vw; height: 100vh; max-width: 420px; max-height: 850px; background-color: #1e1e1e; border: 2px solid #333; border-radius: 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
-        header { padding: 12px; background-color: #252525; border-bottom: 1px solid #333; text-align: center; }
-        h1 { margin: 0; font-size: 1.1rem; color: #00e676; }
-        #stats { font-size: 0.85rem; color: #aaa; margin-top: 4px; }
-        #canvas-container { flex: 1; position: relative; width: 100%; height: 100%; background-color: #181818; }
-        .target { position: absolute; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.05s ease; }
-        .target:active { transform: scale(0.95); }
-        #start-btn { background: linear-gradient(135deg, #00c853, #00e676); color: #000; z-index: 10; }
-        #action-target { background: linear-gradient(135deg, #ff3d00, #ff6e40); color: #fff; z-index: 20; }
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(18, 18, 18, 0.98); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 20px; text-align: center; z-index: 100; overflow-y: auto; }
-        .instructions { font-size: 0.85rem; line-height: 1.4; color: #ccc; margin-bottom: 12px; }
-        .btn-ui { background-color: #00e676; color: #000; border: none; padding: 12px 24px; font-size: 0.95rem; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3); margin: 6px 0; width: 85%; flex-shrink: 0; }
-        #feedback-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.15s ease-out; z-index: 50; }
-        .hit { background-color: rgba(0, 230, 118, 0.15); opacity: 1 !important; }
-        .miss { background-color: rgba(255, 23, 68, 0.25); opacity: 1 !important; }
-        
-        .metrics-grid { display: flex; justify-content: space-around; width: 100%; margin: 8px 0; }
-        .metric-box { background: #2a2a2a; padding: 8px; border-radius: 8px; width: 30%; }
-        .metric-val { font-size: 1.05rem; font-weight: bold; color: #00e676; }
-        .metric-lbl { font-size: 0.7rem; color: #aaa; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 0.72rem; margin: 8px 0; background: #252525; border-radius: 6px; overflow: hidden; }
-        th, td { padding: 5px 4px; text-align: center; border-bottom: 1px solid #333; }
-        th { background: #333; color: #00e676; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #phone-frame {
+            width: 100vw;
+            height: 100vh;
+            max-width: 420px;
+            max-height: 850px;
+            background-color: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        header {
+            padding: 12px;
+            background-color: #252525;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #00e676;
+        }
+
+        #stats {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #181818;
+        }
+
+        .target {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+        }
+
+        .target:active {
+            transform: scale(0.95);
+        }
+
+        #start-btn {
+            background: linear-gradient(135deg, #00c853, #00e676);
+            color: #000;
+            z-index: 10;
+        }
+
+        #action-target {
+            background: linear-gradient(135deg, #ff3d00, #ff6e40);
+            color: #fff;
+            z-index: 20;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 18, 18, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .instructions {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #ccc;
+            margin-bottom: 12px;
+        }
+
+        .btn-ui {
+            background-color: #00e676;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+            margin: 6px 0;
+            width: 85%;
+            flex-shrink: 0;
+        }
+
+        #feedback-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+            z-index: 50;
+        }
+
+        .hit {
+            background-color: rgba(0, 230, 118, 0.15);
+            opacity: 1 !important;
+        }
+
+        .miss {
+            background-color: rgba(255, 23, 68, 0.25);
+            opacity: 1 !important;
+        }
+
+        .metrics-grid {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .metric-box {
+            background: #2a2a2a;
+            padding: 8px;
+            border-radius: 8px;
+            width: 30%;
+        }
+
+        .metric-val {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #00e676;
+        }
+
+        .metric-lbl {
+            font-size: 0.7rem;
+            color: #aaa;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+            margin: 8px 0;
+            background: #252525;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 5px 4px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background: #333;
+            color: #00e676;
+        }
     </style>
 </head>
+
 <body>
 
 <div id="phone-frame">
+
     <header>
         <h1>Thumb Fitts' Law Experiment</h1>
-        <div id="stats">Trial: <span id="trial-count">0</span> / 108</div>
+        <div id="stats">
+            Trial: <span id="trial-count">0</span> / 108
+        </div>
     </header>
 
     <div id="canvas-container">
+
         <div id="feedback-flash"></div>
-        <div id="start-btn" class="target" style="display:none;">START</div>
-        <div id="action-target" class="target" style="display:none;">TAP</div>
+
+        <div id="start-btn" class="target" style="display:none;">
+            START
+        </div>
+
+        <div id="action-target" class="target" style="display:none;">
+            TAP
+        </div>
+
     </div>
 
     <div id="overlay">
-        <h2 id="overlay-title">One-Handed Mobile Experiment</h2>
+
+        <h2 id="overlay-title">
+            One-Handed Mobile Experiment
+        </h2>
+
         <div id="overlay-body" class="instructions">
+
             <p><strong>Instructions:</strong></p>
-            <p>1. Hold your phone in <strong>one hand</strong> using only your <strong>thumb</strong>.</p>
-            <p>2. Tap the green <strong>START</strong> button at the bottom-right home zone.</p>
-            <p>3. Rapidly tap the red <strong>TARGET</strong> button as fast and accurately as possible.</p>
-            <p>Total Trials: <strong>108</strong> (9 conditions × 12 reps)</p>
+
+            <p>
+                1. Hold your phone in <strong>one hand</strong>
+                using only your <strong>thumb</strong>.
+            </p>
+
+            <p>
+                2. Tap the green <strong>START</strong> button.
+            </p>
+
+            <p>
+                3. A red <strong>TARGET</strong> will appear.
+                Move your thumb and tap the target as
+                <strong>quickly and accurately as possible</strong>.
+            </p>
+
+            <p>
+                4. Try not to miss the target.
+            </p>
+
+            <p>
+                Total Trials: <strong>108</strong>
+                (9 conditions × 12 repetitions)
+            </p>
+
         </div>
-        <button id="begin-exp-btn" class="btn-ui">Begin Experiment</button>
-        <button id="download-csv-btn" class="btn-ui" style="background-color: #29b6f6; display: none;">Download CSV Data</button>
+
+        <button id="begin-exp-btn" class="btn-ui">
+            Begin Experiment
+        </button>
+
+        <button
+            id="download-csv-btn"
+            class="btn-ui"
+            style="background-color:#29b6f6; display:none;">
+            Download CSV Data
+        </button>
+
     </div>
+
 </div>
 
+
 <script>
-    const distances = [140, 280, 420]; 
-    const widths = [36, 60, 84];       
-    const trialsPerCondition = 12; // 108 Total Trials
-    
+
+    /*
+     * ==========================================
+     * EXPERIMENT SETTINGS
+     * ==========================================
+     */
+
+    const distances = [140, 280, 420];
+
+    const widths = [36, 60, 84];
+
+    const trialsPerCondition = 12;
+
+    const totalTrials =
+        distances.length *
+        widths.length *
+        trialsPerCondition;
+
+
+    /*
+     * ==========================================
+     * VARIABLES
+     * ==========================================
+     */
+
     let conditions = [];
+
     let currentTrialIndex = 0;
+
     let startTime = 0;
+
     let trialActive = false;
+
     let trialData = [];
+
     let missCount = 0;
 
-    const startBtn = document.getElementById('start-btn');
-    const actionTarget = document.getElementById('action-target');
-    const overlay = document.getElementById('overlay');
-    const overlayTitle = document.getElementById('overlay-title');
-    const overlayBody = document.getElementById('overlay-body');
-    const beginExpBtn = document.getElementById('begin-exp-btn');
-    const downloadCsvBtn = document.getElementById('download-csv-btn');
-    const trialCountEl = document.getElementById('trial-count');
-    const feedbackFlash = document.getElementById('feedback-flash');
-    const canvas = document.getElementById('canvas-container');
+
+    /*
+     * ==========================================
+     * HTML ELEMENTS
+     * ==========================================
+     */
+
+    const startBtn =
+        document.getElementById('start-btn');
+
+    const actionTarget =
+        document.getElementById('action-target');
+
+    const overlay =
+        document.getElementById('overlay');
+
+    const overlayTitle =
+        document.getElementById('overlay-title');
+
+    const overlayBody =
+        document.getElementById('overlay-body');
+
+    const beginExpBtn =
+        document.getElementById('begin-exp-btn');
+
+    const downloadCsvBtn =
+        document.getElementById('download-csv-btn');
+
+    const trialCountEl =
+        document.getElementById('trial-count');
+
+    const feedbackFlash =
+        document.getElementById('feedback-flash');
+
+    const canvas =
+        document.getElementById('canvas-container');
+
+
+    /*
+     * ==========================================
+     * GENERATE 108 BALANCED TRIALS
+     * ==========================================
+     */
 
     function generateConditions() {
+
         let condList = [];
+
         for (let a of distances) {
+
             for (let w of widths) {
-                for (let i = 0; i < trialsPerCondition; i++) {
-                    condList.push({ A: a, W: w });
+
+                for (let i = 0;
+                     i < trialsPerCondition;
+                     i++) {
+
+                    condList.push({
+                        A: a,
+                        W: w
+                    });
                 }
             }
         }
-        for (let i = condList.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [condList[i], condList[j]] = [condList[j], condList[i]];
+
+        /*
+         * Randomize trial order
+         * while keeping equal repetitions
+         */
+
+        for (let i = condList.length - 1;
+             i > 0;
+             i--) {
+
+            const j =
+                Math.floor(Math.random() * (i + 1));
+
+            [condList[i], condList[j]] =
+                [condList[j], condList[i]];
         }
+
         return condList;
     }
 
+
+    /*
+     * ==========================================
+     * START EXPERIMENT
+     * ==========================================
+     */
+
     function initExperiment() {
+
         conditions = generateConditions();
+
         currentTrialIndex = 0;
+
         trialData = [];
+
         trialCountEl.textContent = '0';
+
         overlay.style.display = 'none';
+
         setupStartButton();
     }
 
-    function setupStartButton() {
-        const startSize = 64;
-        const rect = canvas.getBoundingClientRect();
-        const left = rect.width - startSize - 25;
-        const top = rect.height - startSize - 35;
 
-        startBtn.style.width = `${startSize}px`;
-        startBtn.style.height = `${startSize}px`;
-        startBtn.style.left = `${left}px`;
-        startBtn.style.top = `${top}px`;
-        startBtn.style.display = 'flex';
-        
-        actionTarget.style.display = 'none';
+    /*
+     * ==========================================
+     * START BUTTON
+     * ==========================================
+     */
+
+    function setupStartButton() {
+
+        const startSize = 64;
+
+        const rect =
+            canvas.getBoundingClientRect();
+
+        const left =
+            rect.width - startSize - 25;
+
+        const top =
+            rect.height - startSize - 35;
+
+
+        startBtn.style.width =
+            `${startSize}px`;
+
+        startBtn.style.height =
+            `${startSize}px`;
+
+        startBtn.style.left =
+            `${left}px`;
+
+        startBtn.style.top =
+            `${top}px`;
+
+        startBtn.style.display =
+            'flex';
+
+        actionTarget.style.display =
+            'none';
+
         trialActive = false;
     }
 
+
+    /*
+     * ==========================================
+     * CALCULATE VALID TARGET POSITION
+     * ==========================================
+     *
+     * The target must be EXACTLY A pixels
+     * from the START button center.
+     *
+     * We do NOT clamp the target afterward.
+     *
+     * Instead, we try different angles until
+     * we find a position that fits on screen.
+     */
+
+    function findValidTargetPosition(
+        startCenterX,
+        startCenterY,
+        A,
+        W
+    ) {
+
+        const rect =
+            canvas.getBoundingClientRect();
+
+        const radius =
+            W / 2;
+
+        const padding = 5;
+
+        const minX =
+            radius + padding;
+
+        const maxX =
+            rect.width - radius - padding;
+
+        const minY =
+            radius + padding;
+
+        const maxY =
+            rect.height - radius - padding;
+
+
+        /*
+         * Try many directions.
+         *
+         * This prevents the target from being
+         * forced into the screen and changing A.
+         */
+
+        const numberOfAngles = 360;
+
+        let validPositions = [];
+
+
+        for (let i = 0;
+             i < numberOfAngles;
+             i++) {
+
+            const angle =
+                (2 * Math.PI * i) /
+                numberOfAngles;
+
+
+            const x =
+                startCenterX +
+                A * Math.cos(angle);
+
+            const y =
+                startCenterY +
+                A * Math.sin(angle);
+
+
+            if (
+                x >= minX &&
+                x <= maxX &&
+                y >= minY &&
+                y <= maxY
+            ) {
+
+                validPositions.push({
+                    x: x,
+                    y: y,
+                    angle: angle
+                });
+            }
+        }
+
+
+        /*
+         * If there is no valid position,
+         * return null.
+         */
+
+        if (validPositions.length === 0) {
+            return null;
+        }
+
+
+        /*
+         * Randomly choose one valid direction.
+         */
+
+        const randomIndex =
+            Math.floor(
+                Math.random() *
+                validPositions.length
+            );
+
+        return validPositions[randomIndex];
+    }
+
+
+    /*
+     * ==========================================
+     * PREPARE TARGET
+     * ==========================================
+     */
+
     function prepareTarget() {
-        const currentCond = conditions[currentTrialIndex];
-        const A = currentCond.A;
-        const W = currentCond.W;
 
-        const startRect = startBtn.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
+        const currentCond =
+            conditions[currentTrialIndex];
 
-        const startCenterX = (startRect.left + startRect.width / 2) - canvasRect.left;
-        const startCenterY = (startRect.top + startRect.height / 2) - canvasRect.top;
+        const A =
+            currentCond.A;
 
-        const angle = (Math.PI / 180) * (105 + Math.random() * 60);
+        const W =
+            currentCond.W;
 
-        let targetCenterX = startCenterX - A * Math.cos(angle - Math.PI/2);
-        let targetCenterY = startCenterY - A * Math.sin(angle - Math.PI/2);
 
-        const pad = W / 2 + 5;
-        targetCenterX = Math.max(pad, Math.min(canvasRect.width - pad, targetCenterX));
-        targetCenterY = Math.max(pad, Math.min(canvasRect.height - pad, targetCenterY));
+        const startRect =
+            startBtn.getBoundingClientRect();
 
-        actionTarget.style.width = `${W}px`;
-        actionTarget.style.height = `${W}px`;
-        actionTarget.style.left = `${targetCenterX - W / 2}px`;
-        actionTarget.style.top = `${targetCenterY - W / 2}px`;
-        
-        startBtn.style.display = 'none';
-        actionTarget.style.display = 'flex';
+        const canvasRect =
+            canvas.getBoundingClientRect();
+
+
+        /*
+         * Find START center
+         */
+
+        const startCenterX =
+            (startRect.left +
+             startRect.width / 2)
+            - canvasRect.left;
+
+        const startCenterY =
+            (startRect.top +
+             startRect.height / 2)
+            - canvasRect.top;
+
+
+        /*
+         * Find a position that is exactly
+         * A pixels away.
+         */
+
+        const targetPosition =
+            findValidTargetPosition(
+                startCenterX,
+                startCenterY,
+                A,
+                W
+            );
+
+
+        /*
+         * Safety check
+         */
+
+        if (!targetPosition) {
+
+            alert(
+                "This distance and target size cannot fit on this screen. " +
+                "Please use a larger screen or smaller distance."
+            );
+
+            return;
+        }
+
+
+        const targetCenterX =
+            targetPosition.x;
+
+        const targetCenterY =
+            targetPosition.y;
+
+
+        /*
+         * Calculate ACTUAL distance
+         */
+
+        const actualA =
+            Math.sqrt(
+                Math.pow(
+                    targetCenterX - startCenterX,
+                    2
+                ) +
+                Math.pow(
+                    targetCenterY - startCenterY,
+                    2
+                )
+            );
+
+
+        /*
+         * Set target size
+         */
+
+        actionTarget.style.width =
+            `${W}px`;
+
+        actionTarget.style.height =
+            `${W}px`;
+
+
+        /*
+         * Set target position
+         */
+
+        actionTarget.style.left =
+            `${targetCenterX - W / 2}px`;
+
+        actionTarget.style.top =
+            `${targetCenterY - W / 2}px`;
+
+
+        /*
+         * Show target
+         */
+
+        startBtn.style.display =
+            'none';
+
+        actionTarget.style.display =
+            'flex';
+
+
+        /*
+         * Reset errors
+         */
 
         missCount = 0;
-        startTime = performance.now();
+
+
+        /*
+         * Start timer
+         *
+         * The timer begins immediately after
+         * the target appears.
+         */
+
+        startTime =
+            performance.now();
+
         trialActive = true;
+
+
+        /*
+         * Store position information temporarily
+         */
+
+        actionTarget.dataset.startX =
+            startCenterX;
+
+        actionTarget.dataset.startY =
+            startCenterY;
+
+        actionTarget.dataset.targetX =
+            targetCenterX;
+
+        actionTarget.dataset.targetY =
+            targetCenterY;
+
+        actionTarget.dataset.actualA =
+            actualA;
     }
+
+
+    /*
+     * ==========================================
+     * FEEDBACK
+     * ==========================================
+     */
 
     function triggerFeedback(isHit) {
-        feedbackFlash.className = isHit ? 'hit' : 'miss';
-        setTimeout(() => { feedbackFlash.className = ''; }, 150);
+
+        feedbackFlash.className =
+            isHit ? 'hit' : 'miss';
+
+        setTimeout(() => {
+
+            feedbackFlash.className = '';
+
+        }, 150);
     }
 
+
+    /*
+     * ==========================================
+     * START BUTTON PRESSED
+     * ==========================================
+     */
+
     function handleStartPress(e) {
+
         e.preventDefault();
+
         e.stopPropagation();
+
         prepareTarget();
     }
 
-    function handleTargetPress(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!trialActive) return;
 
-        const endTime = performance.now();
-        const movementTime = Math.round(endTime - startTime);
-        const currentCond = conditions[currentTrialIndex];
-        const idBits = Math.log2(currentCond.A / currentCond.W + 1);
+    /*
+     * ==========================================
+     * TARGET PRESSED
+     * ==========================================
+     */
+
+    function handleTargetPress(e) {
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+
+        if (!trialActive) {
+            return;
+        }
+
+
+        const endTime =
+            performance.now();
+
+
+        const movementTime =
+            Math.round(
+                endTime - startTime
+            );
+
+
+        const currentCond =
+            conditions[currentTrialIndex];
+
+
+        const intendedA =
+            currentCond.A;
+
+        const W =
+            currentCond.W;
+
+
+        const actualA =
+            parseFloat(
+                actionTarget.dataset.actualA
+            );
+
+
+        /*
+         * Calculate ID using ACTUAL A
+         *
+         * Because actual A should equal
+         * intended A, the values should be
+         * almost identical.
+         */
+
+        const idBits =
+            Math.log2(
+                actualA / W + 1
+            );
+
+
+        /*
+         * Save trial data
+         */
 
         trialData.push({
-            trial: currentTrialIndex + 1,
-            distance_A: currentCond.A,
-            width_W: currentCond.W,
-            id_bits: parseFloat(idBits.toFixed(3)),
-            movement_time_ms: movementTime,
-            errors: missCount
+
+            trial:
+                currentTrialIndex + 1,
+
+            intended_A:
+                intendedA,
+
+            actual_A:
+                parseFloat(
+                    actualA.toFixed(3)
+                ),
+
+            width_W:
+                W,
+
+            id_bits:
+                parseFloat(
+                    idBits.toFixed(3)
+                ),
+
+            movement_time_ms:
+                movementTime,
+
+            errors:
+                missCount,
+
+            start_x:
+                parseFloat(
+                    actionTarget.dataset.startX
+                ),
+
+            start_y:
+                parseFloat(
+                    actionTarget.dataset.startY
+                ),
+
+            target_x:
+                parseFloat(
+                    actionTarget.dataset.targetX
+                ),
+
+            target_y:
+                parseFloat(
+                    actionTarget.dataset.targetY
+                )
         });
 
-        triggerFeedback(true);
-        currentTrialIndex++;
-        trialCountEl.textContent = currentTrialIndex;
 
-        if (currentTrialIndex < conditions.length) {
+        /*
+         * Show successful feedback
+         */
+
+        triggerFeedback(true);
+
+
+        /*
+         * Move to next trial
+         */
+
+        currentTrialIndex++;
+
+        trialCountEl.textContent =
+            currentTrialIndex;
+
+
+        if (
+            currentTrialIndex <
+            conditions.length
+        ) {
+
             setupStartButton();
+
         } else {
+
             endExperiment();
         }
     }
 
+
+    /*
+     * ==========================================
+     * MISS DETECTION
+     * ==========================================
+     */
+
     function handleCanvasMiss(e) {
-        if (!trialActive) return;
-        if (e.target === canvas || e.target === feedbackFlash) {
+
+        if (!trialActive) {
+            return;
+        }
+
+
+        /*
+         * Only count a miss if the user
+         * taps the empty canvas.
+         */
+
+        if (
+            e.target === canvas ||
+            e.target === feedbackFlash
+        ) {
+
             missCount++;
+
             triggerFeedback(false);
         }
     }
 
+
+    /*
+     * ==========================================
+     * END EXPERIMENT
+     * ==========================================
+     */
+
     function endExperiment() {
+
         trialActive = false;
-        actionTarget.style.display = 'none';
-        startBtn.style.display = 'none';
-        
-        const totalMT = trialData.reduce((acc, row) => acc + row.movement_time_ms, 0);
-        const avgMT = Math.round(totalMT / trialData.length);
-        const totalErrors = trialData.reduce((acc, row) => acc + (row.errors > 0 ? 1 : 0), 0);
-        const errorRate = ((totalErrors / trialData.length) * 100).toFixed(1);
-        
-        // Group by condition key: "A_W"
+
+        actionTarget.style.display =
+            'none';
+
+        startBtn.style.display =
+            'none';
+
+
+        /*
+         * Calculate mean MT
+         */
+
+        const totalMT =
+            trialData.reduce(
+                (acc, row) =>
+                    acc +
+                    row.movement_time_ms,
+                0
+            );
+
+
+        const avgMT =
+            Math.round(
+                totalMT /
+                trialData.length
+            );
+
+
+        /*
+         * Calculate number of trials
+         * containing at least one error.
+         */
+
+        const totalErrors =
+            trialData.reduce(
+                (acc, row) =>
+                    acc +
+                    (row.errors > 0 ? 1 : 0),
+                0
+            );
+
+
+        const errorRate =
+            (
+                totalErrors /
+                trialData.length *
+                100
+            ).toFixed(1);
+
+
+        /*
+         * Group results by condition
+         */
+
         let conditionGroups = {};
+
+
         trialData.forEach(row => {
-            const key = `${row.distance_A}_${row.width_W}`;
+
+            const key =
+                `${row.intended_A}_${row.width_W}`;
+
+
             if (!conditionGroups[key]) {
+
                 conditionGroups[key] = {
-                    A: row.distance_A,
-                    W: row.width_W,
-                    ID: row.id_bits,
+
+                    A:
+                        row.intended_A,
+
+                    W:
+                        row.width_W,
+
+                    ID:
+                        row.id_bits,
+
                     times: []
                 };
             }
-            conditionGroups[key].times.push(row.movement_time_ms);
+
+
+            conditionGroups[key]
+                .times
+                .push(
+                    row.movement_time_ms
+                );
         });
 
-        // Build Table Rows sorted by ID
-        let sortedKeys = Object.keys(conditionGroups).sort((a, b) => conditionGroups[a].ID - conditionGroups[b].ID);
+
+        /*
+         * Sort by ID
+         */
+
+        let sortedKeys =
+            Object.keys(
+                conditionGroups
+            ).sort(
+                (a, b) =>
+                    conditionGroups[a].ID -
+                    conditionGroups[b].ID
+            );
+
+
         let tableRows = '';
+
+
         sortedKeys.forEach(key => {
-            const group = conditionGroups[key];
-            const avgTime = Math.round(group.times.reduce((a, b) => a + b, 0) / group.times.length);
+
+            const group =
+                conditionGroups[key];
+
+
+            const avgTime =
+                Math.round(
+                    group.times.reduce(
+                        (a, b) => a + b,
+                        0
+                    ) /
+                    group.times.length
+                );
+
+
             tableRows += `
+
                 <tr>
+
                     <td>${group.A}px</td>
+
                     <td>${group.W}px</td>
+
                     <td>${group.ID.toFixed(2)} bits</td>
+
                     <td>${avgTime} ms</td>
+
                     <td>${group.times.length}</td>
+
                 </tr>
+
             `;
         });
 
-        overlayTitle.textContent = 'Experiment Results';
+
+        /*
+         * Display results
+         */
+
+        overlayTitle.textContent =
+            'Experiment Results';
+
+
         overlayBody.innerHTML = `
+
             <div class="metrics-grid">
+
                 <div class="metric-box">
-                    <div class="metric-val">${avgMT}ms</div>
-                    <div class="metric-lbl">Mean MT</div>
+
+                    <div class="metric-val">
+                        ${avgMT} ms
+                    </div>
+
+                    <div class="metric-lbl">
+                        Mean MT
+                    </div>
+
                 </div>
+
+
                 <div class="metric-box">
-                    <div class="metric-val">${errorRate}%</div>
-                    <div class="metric-lbl">Error Rate</div>
+
+                    <div class="metric-val">
+                        ${errorRate}%
+                    </div>
+
+                    <div class="metric-lbl">
+                        Error Rate
+                    </div>
+
                 </div>
+
+
                 <div class="metric-box">
-                    <div class="metric-val">108</div>
-                    <div class="metric-lbl">Trials</div>
+
+                    <div class="metric-val">
+                        ${trialData.length}
+                    </div>
+
+                    <div class="metric-lbl">
+                        Trials
+                    </div>
+
                 </div>
+
             </div>
-            
-            <p><strong>Condition Summary (A, W, ID vs MT):</strong></p>
+
+
+            <p>
+                <strong>
+                    Condition Summary (A, W, ID vs MT)
+                </strong>
+            </p>
+
+
             <table>
+
                 <thead>
+
                     <tr>
+
                         <th>A</th>
+
                         <th>W</th>
+
                         <th>ID</th>
+
                         <th>Mean MT</th>
+
                         <th>Reps</th>
+
                     </tr>
+
                 </thead>
+
+
                 <tbody>
+
                     ${tableRows}
+
                 </tbody>
+
             </table>
+
         `;
-        
-        beginExpBtn.textContent = 'Restart Test';
-        downloadCsvBtn.style.display = 'block';
-        overlay.style.display = 'flex';
+
+
+        beginExpBtn.textContent =
+            'Restart Test';
+
+        downloadCsvBtn.style.display =
+            'block';
+
+        overlay.style.display =
+            'flex';
     }
 
+
+    /*
+     * ==========================================
+     * DOWNLOAD CSV
+     * ==========================================
+     */
+
     function downloadCSV() {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Trial,Distance_A,Width_W,ID_bits,MovementTime_ms,Errors\n";
+
+        let csvContent =
+            "data:text/csv;charset=utf-8,";
+
+
+        csvContent +=
+            "Trial,Intended_A,Actual_A,Width_W,ID_bits,MovementTime_ms,Errors,Start_X,Start_Y,Target_X,Target_Y\n";
+
 
         trialData.forEach(row => {
-            csvContent += `${row.trial},${row.distance_A},${row.width_W},${row.id_bits},${row.movement_time_ms},${row.errors}\n`;
+
+            csvContent +=
+
+                `${row.trial},` +
+
+                `${row.intended_A},` +
+
+                `${row.actual_A},` +
+
+                `${row.width_W},` +
+
+                `${row.id_bits},` +
+
+                `${row.movement_time_ms},` +
+
+                `${row.errors},` +
+
+                `${row.start_x},` +
+
+                `${row.start_y},` +
+
+                `${row.target_x},` +
+
+                `${row.target_y}\n`;
         });
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `fitts_law_thumb_data_${Date.now()}.csv`);
+
+        const encodedUri =
+            encodeURI(csvContent);
+
+
+        const link =
+            document.createElement("a");
+
+
+        link.setAttribute(
+            "href",
+            encodedUri
+        );
+
+
+        link.setAttribute(
+            "download",
+            `fitts_law_thumb_data_${Date.now()}.csv`
+        );
+
+
         document.body.appendChild(link);
+
         link.click();
+
         document.body.removeChild(link);
     }
 
-    startBtn.addEventListener('pointerdown', handleStartPress);
-    actionTarget.addEventListener('pointerdown', handleTargetPress);
-    canvas.addEventListener('pointerdown', handleCanvasMiss);
-    
-    beginExpBtn.addEventListener('click', initExperiment);
-    downloadCsvBtn.addEventListener('click', downloadCSV);
+
+    /*
+     * ==========================================
+     * EVENT LISTENERS
+     * ==========================================
+     */
+
+    startBtn.addEventListener(
+        'pointerdown',
+        handleStartPress
+    );
+
+
+    actionTarget.addEventListener(
+        'pointerdown',
+        handleTargetPress
+    );
+
+
+    canvas.addEventListener(
+        'pointerdown',
+        handleCanvasMiss
+    );
+
+
+    beginExpBtn.addEventListener(
+        'click',
+        initExperiment
+    );
+
+
+    downloadCsvBtn.addEventListener(
+        'click',
+        downloadCSV
+    );
+
 </script>
+
 </body>
 </html>
